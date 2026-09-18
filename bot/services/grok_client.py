@@ -10,6 +10,7 @@ import aiohttp
 
 from bot.config import config
 from bot.services.circuit_breaker import CircuitBreaker
+from bot.services.decision import record_model_call
 
 logger = logging.getLogger(__name__)
 
@@ -38,13 +39,28 @@ async def ask_grok(
     user_message: str,
     *,
     model: str | None = None,
+    label: str | None = None,
 ) -> dict[str, Any] | None:
     """Calls Grok with a system+user prompt pair, expects a JSON object back.
 
-    Returns None (never raises) on any failure — callers are responsible for
-    treating a None result as "assume the worst", per the pessimistic-fallback
-    rule: a broken check should never silently pass a token through.
+    Returns None (never raises) on any failure. Callers must treat None as an
+    abstention - "no opinion", never a pass - and must not let it read as a
+    rejection either. The call is also written into the decision record that is
+    currently being built, if there is one, so the exact input, model and answer
+    behind every verdict can be inspected later.
     """
+    result = await _ask_grok(session, system_prompt, user_message, model=model)
+    record_model_call(label, model or config.grok_fast_model, system_prompt, user_message, result)
+    return result
+
+
+async def _ask_grok(
+    session: aiohttp.ClientSession,
+    system_prompt: str,
+    user_message: str,
+    *,
+    model: str | None = None,
+) -> dict[str, Any] | None:
     if not config.grok_api_key:
         logger.warning("GROK_API_KEY not set, skipping Grok call")
         return None

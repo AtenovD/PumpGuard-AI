@@ -77,7 +77,7 @@
         <div class="card"><span class="label">Screened · 24h</span><strong class="value" data-stat="screened_24h">{{ stats.screened_24h }}</strong></div>
         <div class="card"><span class="label">Bought · 24h</span><strong class="value" data-stat="bought_24h">{{ stats.bought_24h }}</strong></div>
         <div class="card"><span class="label">Open positions</span><strong class="value" data-stat="open_positions">{{ stats.open_positions }}</strong></div>
-        <div class="card"><span class="label">PnL today · SOL</span><strong class="value" data-stat="pnl_today">{{ "%+.4f"|format(stats.pnl_today) }}</strong></div>
+        <div class="card"><span class="label">PnL today · ETH</span><strong class="value" data-stat="pnl_today">{{ "%+.4f"|format(stats.pnl_today) }}</strong></div>
       </section>
       <div class="grid">
         <section class="panel">
@@ -99,6 +99,12 @@
           <div class="metric"><span>Average PnL</span><strong class="{{ 'positive' if backtest.avg_pnl_pct > 0 else 'negative' if backtest.avg_pnl_pct < 0 else '' }}">{{ "%+.2f%%"|format(backtest.avg_pnl_pct) }}</strong></div>
           <div class="metric"><span>Median PnL</span><strong>{{ "%+.2f%%"|format(backtest.median_pnl_pct) }}</strong></div>
           <div class="metric"><span>Stop-loss rate</span><strong>{{ "%.1f%%"|format(backtest.stop_loss_hit_rate * 100) }}</strong></div>
+          {% if backtest.sample_verdict is defined %}
+          <div class="metric"><span>Abstained</span><strong>{{ backtest.total_abstained }}</strong></div>
+          <div class="metric"><span>Net PnL · ETH</span><strong class="{{ 'positive' if backtest.net_pnl_eth > 0 else 'negative' if backtest.net_pnl_eth < 0 else '' }}">{{ "%+.4f"|format(backtest.net_pnl_eth) }}</strong></div>
+          <div class="metric"><span>95% CI of mean</span><strong>{% if backtest.pnl_ci95 %}{{ "%+.1f"|format(backtest.pnl_ci95[0]) }}% … {{ "%+.1f"|format(backtest.pnl_ci95[1]) }}%{% else %}—{% endif %}</strong></div>
+          <div class="metric"><span>Sample</span><strong>{{ backtest.sample_verdict }}</strong></div>
+          {% endif %}
           <div class="metric"><span>Best</span><strong>{% if backtest.best_position %}{{ backtest.best_position.symbol or backtest.best_position.mint[:8] }} · {{ "%+.2f%%"|format(backtest.best_position.pnl_pct) }}{% else %}—{% endif %}</strong></div>
           <div class="metric"><span>Worst</span><strong>{% if backtest.worst_position %}{{ backtest.worst_position.symbol or backtest.worst_position.mint[:8] }} · {{ "%+.2f%%"|format(backtest.worst_position.pnl_pct) }}{% else %}—{% endif %}</strong></div>
         </section>

@@ -31,7 +31,7 @@ TEXTS: dict[str, dict[str, str]] = {
             "По сетям за 24ч: {chains_24h}\n"
             "Куплено (dry-run) за 24ч: {bought_24h}\n"
             "Сделок сегодня: {trades_today}\n"
-            "PnL за сегодня: {pnl_today:+.4f} SOL\n"
+            "PnL за сегодня: {pnl_today:+.4f} ETH\n"
             "Открытых позиций: {open_positions}\n"
             "Заблокированных криэйторов: {blocked_creators}"
         ),
@@ -42,14 +42,19 @@ TEXTS: dict[str, dict[str, str]] = {
         "backtest_report": (
             "📈 Backtest · {period_start} — {period_end} UTC\n\n"
             "Сигналов: {total_signals}\n"
-            "Куплено / пропущено: {total_bought} / {total_skipped}\n"
-            "Пропуски по этапам: {skip_by_stage}\n\n"
+            "Куплено / пропущено / воздержались: {total_bought} / {total_skipped} / {total_abstained}\n"
+            "Пропуски по этапам: {skip_by_stage}\n"
+            "Воздержались: {abstain_by_reason}\n\n"
             "Win rate: {win_rate:.1f}%\n"
             "Средний PnL: {avg_pnl:+.2f}%\n"
             "Медианный PnL: {median_pnl:+.2f}%\n"
+            "Чистый PnL: {net_pnl:+.4f} ETH (после комиссий и price impact)\n"
             "Лучшая позиция: {best}\n"
             "Худшая позиция: {worst}\n"
-            "Срабатывания stop-loss: {stop_loss_rate:.1f}%"
+            "Выходы: {exits}\n"
+            "Открыто сейчас: {open_positions}\n\n"
+            "Выборка: {sample_verdict}\n"
+            "95% ДИ среднего PnL: {ci}"
         ),
         "admin_broadcast_prompt": "Пришли сообщение для рассылки всем пользователям.",
         "broadcast_started": "📣 Рассылка начата ({total} получателей)...",
@@ -114,7 +119,7 @@ TEXTS: dict[str, dict[str, str]] = {
             "By chain (24h): {chains_24h}\n"
             "Bought (dry-run, 24h): {bought_24h}\n"
             "Trades today: {trades_today}\n"
-            "PnL today: {pnl_today:+.4f} SOL\n"
+            "PnL today: {pnl_today:+.4f} ETH\n"
             "Open positions: {open_positions}\n"
             "Blocked creators: {blocked_creators}"
         ),
@@ -125,14 +130,19 @@ TEXTS: dict[str, dict[str, str]] = {
         "backtest_report": (
             "📈 Backtest · {period_start} — {period_end} UTC\n\n"
             "Signals: {total_signals}\n"
-            "Bought / skipped: {total_bought} / {total_skipped}\n"
-            "Skipped by stage: {skip_by_stage}\n\n"
+            "Bought / skipped / abstained: {total_bought} / {total_skipped} / {total_abstained}\n"
+            "Skipped by stage: {skip_by_stage}\n"
+            "Abstained: {abstain_by_reason}\n\n"
             "Win rate: {win_rate:.1f}%\n"
             "Average PnL: {avg_pnl:+.2f}%\n"
             "Median PnL: {median_pnl:+.2f}%\n"
+            "Net PnL: {net_pnl:+.4f} ETH (after fees and price impact)\n"
             "Best position: {best}\n"
             "Worst position: {worst}\n"
-            "Stop-loss hit rate: {stop_loss_rate:.1f}%"
+            "Exits: {exits}\n"
+            "Open now: {open_positions}\n\n"
+            "Sample: {sample_verdict}\n"
+            "95% CI of mean PnL: {ci}"
         ),
         "admin_broadcast_prompt": "Send the message you want to broadcast to all users.",
         "broadcast_started": "📣 Broadcast started ({total} recipients)...",

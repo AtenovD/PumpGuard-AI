@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Protocol
 
-from bot.services.models import Token
+from bot.services.models import CurveState, Token
 
 CHAIN_LABELS = {
     "robinhood": "🟢 Robinhood",
@@ -19,6 +19,7 @@ class ChainAdapter(Protocol):
     def watch(self, mint: str) -> None: ...
     def unwatch(self, mint: str) -> None: ...
     def get_price(self, mint: str) -> float | None: ...
+    def get_curve(self, mint: str) -> CurveState | None: ...
     async def run(self) -> None: ...
 
 
@@ -35,7 +36,11 @@ def build_adapters() -> list[ChainAdapter]:
     from bot.services.chains.robinhood import RobinhoodAdapter
 
     factories = {
-        "robinhood": lambda: RobinhoodAdapter(config.robinhood_data_url, config.robinhood_rpc_url),
+        "robinhood": lambda: RobinhoodAdapter(
+            config.robinhood_data_url, config.robinhood_rpc_url,
+            poll_interval=config.robinhood_poll_seconds,
+            max_launch_age_seconds=config.max_launch_age_seconds,
+        ),
     }
     unknown = set(config.enabled_chains) - factories.keys()
     if unknown:

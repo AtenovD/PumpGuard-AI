@@ -58,6 +58,12 @@ async def cb_admin_stats(callback: CallbackQuery, storage: Storage) -> None:
     await callback.answer()
 
 
+def _counts(values: dict[str, int], lang: str) -> str:
+    return ", ".join(
+        t(lang, "backtest_stage_item", stage=key, count=count) for key, count in sorted(values.items())
+    ) or t(lang, "backtest_none")
+
+
 @router.callback_query(F.data == "admin:backtest")
 async def cb_admin_backtest(callback: CallbackQuery, storage: Storage) -> None:
     if not _is_admin(callback.from_user.id):
@@ -94,7 +100,14 @@ async def cb_admin_backtest(callback: CallbackQuery, storage: Storage) -> None:
         median_pnl=report.median_pnl_pct,
         best=position_text(report.best_position),
         worst=position_text(report.worst_position),
-        stop_loss_rate=report.stop_loss_hit_rate * 100,
+        total_abstained=report.total_abstained,
+        abstain_by_reason=_counts(report.abstain_by_reason, lang),
+        net_pnl=report.net_pnl_eth,
+        exits=_counts(report.exit_by_reason, lang),
+        open_positions=report.open_positions,
+        sample_verdict=report.sample_verdict,
+        ci=(f"{report.pnl_ci95[0]:+.1f}% … {report.pnl_ci95[1]:+.1f}%" if report.pnl_ci95
+            else t(lang, "backtest_none")),
     )
     await callback.message.edit_text(text, reply_markup=back_keyboard("admin:open"))
     await callback.answer()

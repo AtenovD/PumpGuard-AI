@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 570" width="1200" height="570" role="img" aria-labelledby="t d">
+  <title id="t">grokbot-pumpfun v1.1 screening pipeline</title>
+  <desc id="d">Two rows of pipeline stages from a new launch to the exit scheme. Stages new in v1.1 are outlined in orange: protections, the auditor with real trade data, the risk limits with a clamp journal, cost-aware fills and the exit scheme. An abstain branch and a decision record that captures every outcome are shown below.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#140d08"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#6e7681"/>
+    </marker>
+    <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#ff6b00"/>
+    </marker>
+    <style>
+      .title { font: 700 26px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; fill: #f0f6fc; }
+      .tag   { font: 600 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #ff6b00; letter-spacing: 1.5px; }
+      .node  { fill: #161b22; stroke: #30363d; stroke-width: 1.5; }
+      .new   { fill: #241408; stroke: #ff6b00; stroke-width: 2; }
+      .name  { font: 600 15px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; fill: #f0f6fc; }
+      .sub   { font: 400 11.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #8b949e; }
+      .star  { fill: #ff6b00; }
+      .note  { font: 400 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #c9d1d9; }
+      .line  { stroke: #6e7681; stroke-width: 1.8; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="570" rx="18" fill="url(#bg)"/>
+  <rect x="1" y="1" width="1198" height="568" rx="17" fill="none" stroke="#30363d"/>
+
+  <text x="60" y="62" class="title">Every number now means something</text>
+  <text x="60" y="88" class="tag">v1.1 · ORANGE = NEW IN THIS RELEASE</text>
+
+  <!-- row 1 -->
+  <g>
+    <rect x="60"  y="112" width="150" height="66" rx="11" class="node"/>
+    <text x="135" y="141" text-anchor="middle" class="name">New launch</text>
+    <text x="135" y="161" text-anchor="middle" class="sub">hood.fun board</text>
+
+    <rect x="246" y="112" width="150" height="66" rx="11" class="node"/>
+    <text x="321" y="141" text-anchor="middle" class="name">Code filter</text>
+    <text x="321" y="161" text-anchor="middle" class="sub">age · buyers</text>
+
+    <rect x="432" y="112" width="150" height="66" rx="11" class="new"/>
+    <text x="507" y="141" text-anchor="middle" class="name">Protections</text>
+    <text x="507" y="161" text-anchor="middle" class="sub">stop-loss · feed</text>
+
+    <rect x="618" y="112" width="150" height="66" rx="11" class="node"/>
+    <text x="693" y="141" text-anchor="middle" class="name">Reputation</text>
+    <text x="693" y="161" text-anchor="middle" class="sub">creator book</text>
+
+    <rect x="804" y="112" width="150" height="66" rx="11" class="node"/>
+    <text x="879" y="141" text-anchor="middle" class="name">Researcher</text>
+    <text x="879" y="161" text-anchor="middle" class="sub">free DB lookups</text>
+
+    <rect x="990" y="112" width="150" height="66" rx="11" class="new"/>
+    <text x="1065" y="141" text-anchor="middle" class="name">Auditor</text>
+    <text x="1065" y="161" text-anchor="middle" class="sub">real trade data</text>
+  </g>
+  <g class="line" marker-end="url(#arrow)">
+    <path d="M210 145 H244" marker-end="url(#arrow)"/>
+    <path d="M396 145 H430" marker-end="url(#arrow)"/>
+    <path d="M582 145 H616" marker-end="url(#arrow)"/>
+    <path d="M768 145 H802" marker-end="url(#arrow)"/>
+    <path d="M954 145 H988" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- elbow between rows -->
+  <path d="M1065 178 V216 H135 V246" class="line" marker-end="url(#arrow)"/>
+
+  <!-- row 2 -->
+  <g>
+    <rect x="60"  y="250" width="150" height="66" rx="11" class="node"/>
+    <text x="135" y="279" text-anchor="middle" class="name">Narrative</text>
+    <text x="135" y="299" text-anchor="middle" class="sub">Grok</text>
+
+    <rect x="246" y="250" width="150" height="66" rx="11" class="node"/>
+    <text x="321" y="279" text-anchor="middle" class="name">Timing</text>
+    <text x="321" y="299" text-anchor="middle" class="sub">Grok</text>
+
+    <rect x="432" y="250" width="150" height="66" rx="11" class="node"/>
+    <text x="507" y="279" text-anchor="middle" class="name">Checker</text>
+    <text x="507" y="299" text-anchor="middle" class="sub">adversarial pass</text>
+
+    <rect x="618" y="250" width="150" height="66" rx="11" class="new"/>
+    <text x="693" y="279" text-anchor="middle" class="name">Risk</text>
+    <text x="693" y="299" text-anchor="middle" class="sub">6 limits · journal</text>
+
+    <rect x="804" y="250" width="150" height="66" rx="11" class="new"/>
+    <text x="879" y="279" text-anchor="middle" class="name">Dry-run fill</text>
+    <text x="879" y="299" text-anchor="middle" class="sub">fee + price impact</text>
+
+    <rect x="990" y="250" width="150" height="66" rx="11" class="new"/>
+    <text x="1065" y="279" text-anchor="middle" class="name">Exit scheme</text>
+    <text x="1065" y="299" text-anchor="middle" class="sub">ROI · trail · stop</text>
+  </g>
+  <g class="line">
+    <path d="M210 283 H244" marker-end="url(#arrow)"/>
+    <path d="M396 283 H430" marker-end="url(#arrow)"/>
+    <path d="M582 283 H616" marker-end="url(#arrow)"/>
+    <path d="M768 283 H802" marker-end="url(#arrow)"/>
+    <path d="M954 283 H988" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- abstain branch -->
+  <rect x="60" y="360" width="522" height="58" rx="11" fill="none" stroke="#ff6b00" stroke-width="2" stroke-dasharray="7 6"/>
+  <text x="80" y="384" class="name" fill="#f0f6fc">Abstain  <tspan class="tag" dx="4">NEW</tspan></text>
+  <text x="80" y="404" class="note">no data · model down  →  never buys, logged apart</text>
+  <path d="M321 360 V326" class="line" stroke="#ff6b00" stroke-dasharray="5 5" marker-end="url(#arrowOrange)" transform="rotate(180 321 343)"/>
+
+  <!-- risk / fill annotation -->
+  <rect x="618" y="360" width="522" height="58" rx="11" class="node"/>
+  <text x="638" y="384" class="name">Simulated, and honest about it</text>
+  <text x="638" y="404" class="note">+10.6% impact on 0.3 ETH · 1% fee per side · 95% CI</text>
+
+  <!-- decision record -->
+  <rect x="60" y="454" width="1080" height="70" rx="13" fill="#241408" stroke="#ff6b00" stroke-width="2"/>
+  <text x="84" y="483" class="name" font-size="17">Decision record  <tspan class="tag" dx="6">NEW</tspan></text>
+  <text x="84" y="507" class="note">one row per screening, every outcome:  verdicts · inputs · exact model calls · risk clamps · locks · fill</text>
+</svg>

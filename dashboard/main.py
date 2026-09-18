@@ -14,7 +14,9 @@ from bot.services.storage import Storage
 from bot.services.oauth import (
     OAuthError, OAuthSettings, XaiOAuthClient, complete_oauth_callback,
 )
-from dashboard.queries import read_backtest, read_funnel, read_open_positions, read_stats
+from dashboard.queries import (
+    read_backtest, read_funnel, read_open_positions, read_recent_decisions, read_stats,
+)
 from dashboard.metrics import render_metrics
 
 WINDOWS = {"1h": 3600, "24h": 86400, "7d": 7 * 86400}
@@ -66,6 +68,11 @@ def create_app(db_path: str | None = None) -> FastAPI:
     @app.get("/api/stats")
     async def api_stats(request: Request):
         return await read_stats(request.app.state.storage)
+
+    @app.get("/api/decisions")
+    async def api_decisions(request: Request, limit: int = 20, mint: str | None = None):
+        """Why was each token bought, skipped or abstained on? Full decision trail."""
+        return await read_recent_decisions(request.app.state.storage, limit, mint)
 
     @app.get("/oauth/callback", response_class=HTMLResponse)
     async def oauth_callback(code: str = "", state: str = "", error: str = ""):

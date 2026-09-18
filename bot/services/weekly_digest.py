@@ -28,13 +28,16 @@ def format_weekly_digest(report: BacktestReport) -> str:
     return (
         f"📈 <b>PumpGuard weekly digest</b> · {start}–{end} UTC\n\n"
         f"Signals screened: <b>{report.total_signals}</b>\n"
-        f"Dry-run buys / skipped: <b>{report.total_bought}</b> / {report.total_skipped}\n"
+        f"Dry-run buys / skipped / abstained: <b>{report.total_bought}</b> / "
+        f"{report.total_skipped} / {report.total_abstained}\n"
         f"Skipped by stage: {stage_text}\n\n"
         f"Closed-position win rate: <b>{report.win_rate * 100:.1f}%</b>\n"
         f"Average / median PnL: {report.avg_pnl_pct:+.1f}% / {report.median_pnl_pct:+.1f}%\n"
+        f"Net PnL after costs: {report.net_pnl_eth:+.4f} ETH\n"
         f"Best: {_position(report.best_position)}\n"
         f"Worst: {_position(report.worst_position)}\n"
-        f"Stop-loss hit rate: {report.stop_loss_hit_rate * 100:.1f}%\n\n"
+        f"Stop-loss hit rate: {report.stop_loss_hit_rate * 100:.1f}%\n"
+        f"Sample: {escape(report.sample_verdict)}\n\n"
         "All positions are simulated. This is not financial advice."
     )
 

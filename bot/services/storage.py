@@ -58,6 +58,9 @@ CREATE TABLE IF NOT EXISTS positions (
     exit_price REAL,
     closed_at INTEGER,
     close_reason TEXT,
+    token_amount REAL,
+    peak_pnl_pct REAL NOT NULL DEFAULT 0,
+    exit_proceeds REAL,
     PRIMARY KEY (chain, mint)
 );
 
@@ -106,6 +109,18 @@ CREATE TABLE IF NOT EXISTS analysis_snapshots (
     created_at INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS decision_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chain TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    symbol TEXT,
+    stage TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    score REAL,
+    payload TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS runtime_health (
     component TEXT PRIMARY KEY,
     status TEXT NOT NULL,
@@ -113,6 +128,8 @@ CREATE TABLE IF NOT EXISTS runtime_health (
     updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_signals_created_at ON signals(created_at);
+CREATE INDEX IF NOT EXISTS idx_decisions_subject ON decision_records(chain, subject);
+CREATE INDEX IF NOT EXISTS idx_decisions_created_at ON decision_records(created_at);
 CREATE INDEX IF NOT EXISTS idx_positions_open ON positions(status) WHERE status = 'open';
 """
 
@@ -138,6 +155,18 @@ class Position:
     exit_price: float | None = None
     closed_at: int | None = None
     close_reason: str | None = None
+    # v1.1: token amount received, best net profit seen (drives the trailing
+    # stop) and the net ETH a sale returned after fees and price impact.
+    # `sol_spent` is a legacy column name; the value is ETH on Robinhood Chain.
+    token_amount: float | None = None
+    peak_pnl_pct: float = 0.0
+    exit_proceeds: float | None = None
+
+
+_POSITION_COLUMNS = (
+    "mint, symbol, entry_price, sol_spent, score, creator, opened_at, status, "
+    "chain, exit_price, closed_at, close_reason, token_amount, peak_pnl_pct, exit_proceeds"
+)
 
 
 @dataclass
@@ -160,6 +189,7 @@ class Storage:
         await self._db.executescript(SCHEMA)
         await self._migrate()
         await self._migrate_chain_dimension()
+        await self._migrate_v11()
         await self._db.commit()
 
     async def _migrate(self) -> None:
@@ -178,6 +208,18 @@ class Storage:
         seen_columns = await self._columns("seen_tokens")
         if seen_columns and "creator" not in seen_columns:
             await self.db.execute("ALTER TABLE seen_tokens ADD COLUMN creator TEXT")
+
+    async def _migrate_v11(self) -> None:
+        """v1.1 additive columns. Runs after the chain-dimension rebuild, which
+        recreates `positions` without them for very old databases."""
+        columns = await self._columns("positions")
+        for name, sql_type in {
+            "token_amount": "REAL",
+            "peak_pnl_pct": "REAL NOT NULL DEFAULT 0",
+            "exit_proceeds": "REAL",
+        }.items():
+            if name not in columns:
+                await self.db.execute(f"ALTER TABLE positions ADD COLUMN {name} {sql_type}")
 
     async def _columns(self, table: str) -> set[str]:
         cursor = await self.db.execute(f"PRAGMA table_info({table})")
@@ -326,6 +368,44 @@ class Storage:
         )
         row = await cursor.fetchone()
         return OAuthTokenRecord(*row) if row else None
+
+    async def save_decision(
+        self, chain: str, subject: str, symbol: str | None, stage: str, outcome: str,
+        score: float | None, payload: str,
+    ) -> int:
+        cursor = await self.db.execute(
+            "INSERT INTO decision_records (chain, subject, symbol, stage, outcome, score, payload, "
+            "created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (chain, subject, symbol, stage, outcome, score, payload, int(time.time())),
+        )
+        await self.db.commit()
+        return int(cursor.lastrowid)
+
+    async def get_decision(self, decision_id: int) -> dict[str, object] | None:
+        cursor = await self.db.execute(
+            "SELECT id, chain, subject, symbol, stage, outcome, score, payload, created_at "
+            "FROM decision_records WHERE id = ?", (decision_id,),
+        )
+        row = await cursor.fetchone()
+        return self._decision_row(row) if row else None
+
+    async def recent_decisions(self, limit: int = 20, subject: str | None = None) -> list[dict[str, object]]:
+        sql = ("SELECT id, chain, subject, symbol, stage, outcome, score, payload, created_at "
+               "FROM decision_records")
+        params: tuple = ()
+        if subject:
+            sql += " WHERE subject = ?"
+            params = (subject,)
+        sql += " ORDER BY id DESC LIMIT ?"
+        cursor = await self.db.execute(sql, params + (max(1, min(limit, 200)),))
+        return [self._decision_row(row) for row in await cursor.fetchall()]
+
+    @staticmethod
+    def _decision_row(row: tuple) -> dict[str, object]:
+        return {
+            "id": row[0], "chain": row[1], "subject": row[2], "symbol": row[3], "stage": row[4],
+            "outcome": row[5], "score": row[6], "payload": row[7], "created_at": row[8],
+        }
 
     async def save_analysis_snapshot(self, chain: str, mint: str, payload: str) -> int:
         cursor = await self.db.execute(
@@ -508,11 +588,36 @@ class Storage:
 
     async def open_position(self, p: Position) -> None:
         await self.db.execute(
-            "INSERT INTO positions (chain, mint, symbol, entry_price, sol_spent, score, creator, opened_at, status) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open')",
-            (p.chain, p.mint, p.symbol, p.entry_price, p.sol_spent, p.score, p.creator, p.opened_at),
+            "INSERT INTO positions (chain, mint, symbol, entry_price, sol_spent, score, creator, "
+            "opened_at, status, token_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?)",
+            (p.chain, p.mint, p.symbol, p.entry_price, p.sol_spent, p.score, p.creator,
+             p.opened_at, p.token_amount),
         )
         await self.db.commit()
+
+    async def update_position_peak(self, mint: str, peak_pnl_pct: float, chain: str = "robinhood") -> None:
+        await self.db.execute(
+            "UPDATE positions SET peak_pnl_pct = ? WHERE chain = ? AND mint = ? AND status = 'open'",
+            (peak_pnl_pct, chain, mint),
+        )
+        await self.db.commit()
+
+    async def open_exposure(self) -> float:
+        """Total ETH currently committed to open dry-run positions."""
+        cursor = await self.db.execute(
+            "SELECT COALESCE(SUM(sol_spent), 0) FROM positions WHERE status = 'open'"
+        )
+        (total,) = await cursor.fetchone()
+        return float(total)
+
+    async def closes_since(self, reason: str, since: int) -> list[int]:
+        """Timestamps of positions closed for `reason` at or after `since`."""
+        cursor = await self.db.execute(
+            "SELECT closed_at FROM positions WHERE status = 'closed' AND close_reason = ? "
+            "AND closed_at IS NOT NULL AND closed_at >= ? ORDER BY closed_at",
+            (reason, since),
+        )
+        return [int(row[0]) for row in await cursor.fetchall()]
 
     async def close_position(
         self,
@@ -521,26 +626,36 @@ class Storage:
         close_reason: str | None = None,
         closed_at: int | None = None,
         chain: str = "robinhood",
+        exit_proceeds: float | None = None,
     ) -> None:
         await self.db.execute(
-            "UPDATE positions SET status = 'closed', exit_price = ?, closed_at = ?, close_reason = ? "
-            "WHERE chain = ? AND mint = ?",
-            (exit_price, int(time.time()) if closed_at is None else closed_at, close_reason, chain, mint),
+            "UPDATE positions SET status = 'closed', exit_price = ?, closed_at = ?, close_reason = ?, "
+            "exit_proceeds = ? WHERE chain = ? AND mint = ?",
+            (exit_price, int(time.time()) if closed_at is None else closed_at, close_reason,
+             exit_proceeds, chain, mint),
         )
         await self.db.commit()
 
     async def open_positions(self) -> list[Position]:
         cursor = await self.db.execute(
-            "SELECT mint, symbol, entry_price, sol_spent, score, creator, opened_at, status, "
-            "chain, exit_price, closed_at, close_reason "
-            "FROM positions WHERE status = 'open' ORDER BY opened_at DESC"
+            f"SELECT {_POSITION_COLUMNS} FROM positions WHERE status = 'open' ORDER BY opened_at DESC"
         )
         return [Position(*row) for row in await cursor.fetchall()]
 
+    async def open_positions_marked(self) -> list[tuple[Position, float | None]]:
+        """Open positions with the latest observed spot price, if one was recorded."""
+        cursor = await self.db.execute(
+            "SELECT p.mint, p.symbol, p.entry_price, p.sol_spent, p.score, p.creator, p.opened_at, "
+            "p.status, p.chain, p.exit_price, p.closed_at, p.close_reason, p.token_amount, "
+            "p.peak_pnl_pct, p.exit_proceeds, s.price FROM positions p "
+            "LEFT JOIN price_snapshots s ON s.chain = p.chain AND s.mint = p.mint "
+            "WHERE p.status = 'open' ORDER BY p.opened_at DESC"
+        )
+        return [(Position(*row[:15]), row[15]) for row in await cursor.fetchall()]
+
     async def closed_positions_since(self, timestamp: int | None = None) -> list[Position]:
         sql = (
-            "SELECT mint, symbol, entry_price, sol_spent, score, creator, opened_at, status, "
-            "chain, exit_price, closed_at, close_reason FROM positions p WHERE status = 'closed' "
+            f"SELECT {_POSITION_COLUMNS} FROM positions p WHERE status = 'closed' "
             "AND EXISTS (SELECT 1 FROM signals s WHERE s.chain = p.chain "
             "AND s.mint = p.mint AND s.outcome = 'bought')"
         )

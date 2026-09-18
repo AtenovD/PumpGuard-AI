@@ -11,6 +11,7 @@ from aiogram import Bot
 from bot.config import config
 from bot.services import pipeline
 from bot.services.executor import DryRunExecutor
+from bot.services.exits import ExitRules, evaluate_exit, parse_roi_table
 from bot.services.chains import ChainAdapter
 from bot.services.reputation import ReputationBook
 from bot.services.risk import RiskManager
@@ -70,7 +71,8 @@ async def _run_chain_monitor(
 
             try:
                 analysis = await pipeline.screen_token(
-                    session, storage, risk, reputation, executor, token, pulse.snapshot()
+                    session, storage, risk, reputation, executor, token, pulse.snapshot(),
+                    feed_healthy=adapter.price_feed_healthy,
                 )
             except Exception:
                 logger.exception("screening %s crashed", token.mint)
@@ -98,15 +100,26 @@ async def run_position_watcher(
     adapters: dict[str, ChainAdapter] | ChainAdapter,
     check_interval_sec: int = 15,
 ) -> None:
-    """Watches real bonding-curve prices for open positions and force-closes any
-    position whose drawdown from entry hits STOP_LOSS_PCT — exactly the exit rule
-    a live executor would need, run here against a real (but unexecuted) price."""
+    """Watches real prices for open positions and closes them by the exit scheme.
+
+    Every exit is decided on what a sale would actually return - net of the
+    trade fee and the price impact of the position's size - not on the spot
+    price, so the stop-loss, take-profit and trailing stop all see the same
+    number a live executor would have realised.
+    """
     executor = DryRunExecutor()
+    rules = ExitRules(
+        stop_loss_pct=config.stop_loss_pct,
+        roi_table=parse_roi_table(config.roi_table),
+        trailing_activate_pct=config.trailing_activate_pct,
+        trailing_stop_pct=config.trailing_stop_pct,
+        max_hold_minutes=config.max_hold_minutes,
+    )
     adapter_map = (
         adapters if isinstance(adapters, dict) else {adapters.chain_id: adapters}
     )
 
-    # Positions may already be open from a previous run (state persists in sqlite) —
+    # Positions may already be open from a previous run (state persists in sqlite) -
     # make sure the price feed is watching all of them, not just newly opened ones.
     for position in await storage.open_positions():
         adapter = adapter_map.get(position.chain)
@@ -121,24 +134,36 @@ async def run_position_watcher(
                 continue
             price = adapter.get_price(position.mint)
             if price is None:
-                continue  # no trade observed yet for this mint — nothing to act on
+                continue  # no trade observed yet for this mint - nothing to act on
             await storage.record_price_snapshot(position.mint, price, position.chain)
 
-            drawdown_pct = (position.entry_price - price) / position.entry_price * 100
-            if drawdown_pct < config.stop_loss_pct:
+            curve = adapter.get_curve(position.mint)
+            quote = executor.quote_exit(position, price, curve)
+            if not quote.ok or position.sol_spent <= 0:
+                continue
+            profit_pct = (quote.proceeds - position.sol_spent) / position.sol_spent * 100
+            peak = max(position.peak_pnl_pct, profit_pct)
+            if peak > position.peak_pnl_pct:
+                await storage.update_position_peak(position.mint, peak, position.chain)
+
+            held_minutes = (time.time() - position.opened_at) / 60
+            reason = evaluate_exit(rules, profit_pct, peak, held_minutes)
+            if reason is None:
                 continue  # still within tolerance, keep watching
 
-            result = await executor.sell(position.mint, price)
-            pnl_sol = (result.price - position.entry_price) / position.entry_price * position.sol_spent
-            pnl_pct = (result.price - position.entry_price) / position.entry_price * 100
+            result = await executor.sell(position, price, curve)
+            pnl_eth = result.proceeds - position.sol_spent
+            pnl_pct = pnl_eth / position.sol_spent * 100
 
             await storage.close_position(
-                position.mint, price, "stop_loss", chain=position.chain
+                position.mint, result.price, reason, chain=position.chain,
+                exit_proceeds=result.proceeds,
             )
-            await storage.record_pnl_only(pnl_sol)
+            await storage.record_pnl_only(pnl_eth)
             await reputation.record_outcome(position.creator, pnl_pct, position.chain)
             adapter.unwatch(position.mint)
             logger.info(
-                "stop-loss closed %s:%s: entry=%.10f exit=%.10f pnl=%.4f (%.1f%%)",
-                position.chain, position.mint[:8], position.entry_price, price, pnl_sol, pnl_pct,
+                "%s closed %s:%s: cost=%.4f proceeds=%.4f pnl=%.4f ETH (%.1f%%, peak %.1f%%, held %.0f min)",
+                reason, position.chain, position.mint[:8], position.sol_spent, result.proceeds,
+                pnl_eth, pnl_pct, peak, held_minutes,
             )

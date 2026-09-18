@@ -104,17 +104,25 @@ async def read_backtest(storage: Storage, since_seconds: int) -> dict[str, objec
     pnl_rows: list[tuple] = []
     position_columns = await _columns(storage, "positions")
     if {"exit_price", "closed_at", "close_reason"}.issubset(position_columns):
+        # Prefer the net proceeds recorded since v1.1 (already after fees and
+        # price impact); older rows only have an exit price.
+        net = "exit_proceeds" in position_columns
         try:
             cursor = await storage.db.execute(
-                "SELECT mint, symbol, entry_price, exit_price, close_reason FROM positions "
-                "WHERE status = 'closed' AND exit_price IS NOT NULL AND entry_price > 0 "
-                "AND COALESCE(closed_at, opened_at) >= ?",
+                "SELECT mint, symbol, entry_price, exit_price, close_reason, "
+                + ("exit_proceeds, sol_spent" if net else "NULL, NULL")
+                + " FROM positions WHERE status = 'closed' AND exit_price IS NOT NULL "
+                "AND entry_price > 0 AND COALESCE(closed_at, opened_at) >= ?",
                 (cutoff,),
             )
             pnl_rows = await cursor.fetchall()
         except aiosqlite.OperationalError:
             pnl_rows = []
-    values = [(row[3] - row[2]) / row[2] * 100 for row in pnl_rows]
+    values = [
+        (row[5] - row[6]) / row[6] * 100 if row[5] is not None and row[6] else
+        (row[3] - row[2]) / row[2] * 100
+        for row in pnl_rows
+    ]
     best_row = max(zip(pnl_rows, values), key=lambda item: item[1], default=None)
     worst_row = min(zip(pnl_rows, values), key=lambda item: item[1], default=None)
 
@@ -138,6 +146,22 @@ async def read_backtest(storage: Storage, since_seconds: int) -> dict[str, objec
             if pnl_rows else 0.0
         ),
     }
+
+
+async def read_recent_decisions(storage: Storage, limit: int = 20, subject: str | None = None) -> list[dict[str, object]]:
+    """Recent decision records with their payload parsed, or [] on a pre-v1.1 database."""
+    import json
+
+    try:
+        rows = await storage.recent_decisions(limit, subject)
+    except aiosqlite.OperationalError:
+        return []
+    for row in rows:
+        try:
+            row["payload"] = json.loads(str(row["payload"]))
+        except ValueError:
+            pass
+    return rows
 
 
 async def read_open_positions(storage: Storage) -> list[dict[str, object]]:

@@ -36,6 +36,29 @@ class RobinhoodNftAdapter:
         self._emitted: set[str] = set()
         self.price_feed_healthy = False
 
+    async def probe(self, session: aiohttp.ClientSession) -> str | None:
+        """Check the assumed endpoint really exists before the screener starts.
+
+        Returns None when the endpoint serves a usable collections list, or a
+        human-readable reason when it does not. hood.fun answered 404 for this
+        path at the time v1.1 was written, so without this check the screener
+        would poll a page that does not exist forever and never say so.
+        """
+        try:
+            async with session.get(
+                f"{self.data_url}/api/nft/collections", timeout=aiohttp.ClientTimeout(total=15)
+            ) as response:
+                if response.status != 200:
+                    return f"endpoint returned HTTP {response.status}"
+                if "json" not in response.headers.get("Content-Type", ""):
+                    return "endpoint did not return JSON"
+                payload = await response.json()
+        except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as exc:
+            return f"endpoint unreachable: {exc}"
+        if not isinstance(payload, dict) or "collections" not in payload:
+            return "response has no 'collections' list"
+        return None
+
     async def _fetch(self, session: aiohttp.ClientSession) -> list[dict]:
         async with session.get(
             f"{self.data_url}/api/nft/collections", timeout=aiohttp.ClientTimeout(total=20)

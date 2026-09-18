@@ -10,7 +10,9 @@ from starlette.requests import Request
 
 from bot.services.storage import Position, Storage
 from dashboard.main import create_app
-from dashboard.queries import read_backtest, read_funnel, read_open_positions, read_stats
+from dashboard.queries import (
+    read_backtest, read_funnel, read_open_positions, read_recent_decisions, read_stats,
+)
 
 
 class DashboardTests(unittest.IsolatedAsyncioTestCase):
@@ -76,6 +78,45 @@ class DashboardTests(unittest.IsolatedAsyncioTestCase):
             await reader.close()
         finally:
             os.unlink(path)
+
+    async def test_decision_records_are_served_read_only_and_survive_old_databases(self) -> None:
+        handle = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        path = handle.name
+        handle.close()
+        try:
+            writer = Storage(path)
+            await writer.connect()
+            await writer.save_decision(
+                "robinhood", "0xmint", "TKN", "abstain", "abstain", None,
+                '{"outcome": "abstain", "detail": "auditor:insufficient_trade_data"}',
+            )
+            await writer.close()
+
+            app = create_app(path)
+            async with app.router.lifespan_context(app):
+                route = next(route for route in app.routes if route.path == "/api/decisions")
+                rows = await route.endpoint(
+                    Request({"type": "http", "app": app, "method": "GET", "path": "/api/decisions",
+                             "headers": [], "query_string": b""}),
+                    20, None,
+                )
+                self.assertEqual(rows[0]["outcome"], "abstain")
+                self.assertEqual(rows[0]["payload"]["detail"], "auditor:insufficient_trade_data")
+                self.assertEqual(len(await read_recent_decisions(app.state.storage, 5, "0xother")), 0)
+        finally:
+            os.unlink(path)
+
+        # A database written by v1.0 has no decision table: the route must return [], not 500.
+        handle = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        old_path = handle.name
+        handle.close()
+        try:
+            reader = Storage(old_path)
+            await reader.connect_readonly()
+            self.assertEqual(await read_recent_decisions(reader), [])
+            await reader.close()
+        finally:
+            os.unlink(old_path)
 
 
 if __name__ == "__main__":

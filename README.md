@@ -14,6 +14,7 @@
   <a href="https://github.com/AtenovD/grokbot-pumpfun/commits/main"><img src="https://img.shields.io/github/last-commit/AtenovD/grokbot-pumpfun?style=for-the-badge" alt="Last commit"></a>
 </p>
 <p align="center">
+  <img src="https://img.shields.io/badge/version-1.1.0-ff6b00?style=for-the-badge" alt="Version 1.1.0">
   <img src="https://img.shields.io/badge/python-3.12-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12">
   <img src="https://img.shields.io/badge/Powered%20by-Grok-FF6B00?style=for-the-badge" alt="Powered by Grok">
   <img src="https://img.shields.io/badge/chain-Robinhood%20Chain-00C805?style=for-the-badge" alt="Robinhood Chain">
@@ -24,6 +25,8 @@
 <p align="center">
   A Telegram bot that screens new Robinhood Chain / hood.fun token launches through four Grok-powered agents, a risk manager, and a creator reputation book - then simulates the trade. No live execution, ever.
 </p>
+
+<h3 align="center">Most screeners show you what passed.<br>This one keeps the receipt for everything else - and prices every simulated trade like it was real.</h3>
 
 <table align="center">
   <tr>
@@ -68,6 +71,29 @@ This is a **research/screening tool**, not a trading bot. Every "buy" and "sell"
   <img src="assets/dry-run-only.png" alt="Dry-run only - no wallets, no signing, no live execution" width="60%">
 </p>
 
+## What's new in v1.1 - honest simulation
+
+<p align="center">
+  <img src="assets/v1-1-pipeline.svg" alt="v1.1 pipeline: protections, real trade data for the auditor, risk clamp journal, cost-aware fills, exit scheme, abstain and decision records" width="100%">
+</p>
+
+A backtest is only worth reading if the simulation under it is honest. Auditing v1.0 against live hood.fun data turned up several places where it was not, so v1.1 fixes the *numbers* rather than adding more agents.
+
+| | Before | Now |
+|---|---|---|
+| **Fills** | Filled at spot, no fee, no price impact | Priced off the bonding curve: 1% fee each side plus real impact (0.3 ETH into a fresh curve moves the price ~10.6%, on top of the fee) |
+| **Exits** | Stop-loss was the *only* way out, so every closed trade was a loser and win rate was zero by construction | ROI table, trailing stop, time stop and stop-loss, all judged on the **net** value of a sale |
+| **Auditor** | Was handed empty trade and holder data | Gets the launchpad's real trade counts, volumes and recent trades; abstains when there is nothing to audit |
+| **Model down?** | Logged as a rejection, polluting the funnel | **Abstain** - never buys, counted separately |
+| **"New" launches** | Anything not in the first poll counted as new, however old | A token older than `MAX_LAUNCH_AGE_SECONDS` is never a launch; records with no timestamp are ignored |
+| **Rejected tokens** | One line in a log | A full **decision record**: verdicts, inputs, exact model calls, risk clamps |
+| **Position size** | A model score of `5` could size a trade at 5x the limit | Scores bounded to 0-1; every clamp journaled; new total-exposure limit |
+| **After a bad run** | Kept buying | Stop-loss guard pauses entries; an unhealthy price feed locks them |
+| **Report** | A win rate with no context | Net PnL after costs, exit breakdown, **95% confidence interval** and a plain verdict like *"too few trades to conclude anything"* |
+| **Units** | "SOL" on an ETH chain | ETH everywhere (old env names still work) |
+
+Read more: [simulation model and every assumption](docs/simulation-model.md) · [decision records](docs/decision-records.md) · [changelog](CHANGELOG.md)
+
 ## Features
 
 <p align="center">
@@ -77,20 +103,24 @@ This is a **research/screening tool**, not a trading bot. Every "buy" and "sell"
 - **Robinhood Chain launch monitor** - watches hood.fun launches on Robinhood Chain, filters by age and buyer count before spending a single Grok call
 - **Five agents**, cheapest first:
   - **Researcher** - free DB lookups before any Grok call: has this creator rugged before, and does this name/symbol exactly or semantically copy a recent token
-  - **Auditor** (Grok) - looks for wash trading / bundled buys in the trade and holder data
+  - **Auditor** (Grok) - looks for wash trading and one-sided buying in the launchpad's real trade statistics (holder data is not available). With fewer than three observed trades it abstains without spending a call
   - **Narrative** (Grok) - scores the meme's attention potential from its name/symbol
   - **Timing** (Grok) - judges the current window using only this bot's own observed launch/outcome rate (no external price feeds)
   - **Checker** (Grok, stronger model) - an adversarial final pass given all four prior verdicts, explicitly looking for a reason to reject
 - **Real price tracking** - open dry-run positions are watched against the chain's actual bonding-curve or DEX-pool price, not a random number
-- **Real stop-loss** - a position is force-closed the moment its real observed drawdown from entry crosses `STOP_LOSS_PCT`
+- **Exit scheme** - stop-loss, a time-decaying ROI take-profit table, a trailing stop and a time stop. Every rule is judged on what a sale would actually return after fee and price impact
+- **Cost-aware simulation** - fills are priced off the bonding curve, so size matters: a buy costs about 1.4% over spot at 0.01 ETH and about 19% at 0.5 ETH, fee included
+- **Abstain, not guess** - a model outage, an unparseable reply or missing data is an abstention: it can never buy and is reported apart from rejections
+- **Decision records** - every outcome, not just the passes, saves a full record you can query (`GET /api/decisions`)
+- **Protections** - a stop-loss guard pauses new entries after a cluster of stop-outs, and an unhealthy price feed locks them until it recovers
 - **Circuit breaker on Grok** - after several consecutive failures, the pipeline stops calling Grok for a cooldown window instead of hammering a struggling API on every new launch
 - **Explainability digest** - the four agent verdicts are synthesized by Grok into one short, readable paragraph for the alert, instead of four raw JSON summaries
 - **Optional user Grok OAuth** - users can connect their own Grok account with authorization-code PKCE and request a fresh, detailed second opinion for a signal. Encrypted user tokens never replace the bot's core `GROK_API_KEY` pipeline
 - **Prompt-injection resistant** - token symbol/name/description are attacker-controlled. They're sanitized and every agent prompt explicitly frames them as data, not instructions, before anything reaches Grok
-- **Risk manager** - five independent limits: max SOL per trade, daily loss limit, max trades/day, max open positions, stop-loss - pure arithmetic, no model involved, and the last gate before a (simulated) trade
+- **Risk manager** - six independent limits: max ETH per trade, daily loss limit, total open exposure, max trades/day, max open positions, stop-loss. Pure arithmetic, no model involved, the last gate before a (simulated) trade, and every clamp it applies is journaled
 - **Reputation book** - creators are blocked after their tracked launches rug, forgotten after a configurable number of days
-- **Dry-run executor** - simulates entry/exit at real observed prices, feeding the reputation book and daily counters exactly like a live executor would
-- **Backtest report** - replays recorded signals and closed dry-run positions to show funnel counts, win rate, PnL distribution, and stop-loss frequency
+- **Dry-run executor** - simulates entry and exit against the real bonding-curve reserves, feeding the reputation book and daily counters exactly like a live executor would
+- **Performance report** - summarises what the bot recorded going forward (it is not a historical replay): funnel, abstentions, net PnL after costs, exit breakdown, and a bootstrap confidence interval with a sample-size verdict
 - **Weekly public digest** - optionally publishes the previous seven days of recorded backtest performance to a separate public channel
 - **Button-only Telegram frontend**: RU/EN language picker, stats, open positions, optional mandatory-subscription gate, button-driven admin panel - no slash commands beyond `/start`
 - **Read-only web dashboard** - responsive funnel, recorded-performance summary, open positions, and a polling JSON stats endpoint without a second market-data connection
@@ -161,10 +191,17 @@ Railway's current project-level Infrastructure as Code definition is `.railway/r
 | `ENABLED_CHAINS` | comma-separated adapter list, only `robinhood` is currently implemented (defaults to `robinhood`) |
 | `ROBINHOOD_DATA_URL` / `ROBINHOOD_RPC_URL` | hood.fun public indexer root and Robinhood Chain RPC used for source verification/fallback |
 | `MIN_LAUNCH_AGE_SECONDS` / `MIN_UNIQUE_BUYERS` | pre-filter before any Grok call is made |
+| `MAX_LAUNCH_AGE_SECONDS` | tokens older than this (default 3600) are never treated as new launches, so a change in what the indexer serves cannot flood the paid pipeline |
+| `ROBINHOOD_POLL_SECONDS` | how often the board is polled (default 5). The payload is a few hundred KB compressed; raise this to cut bandwidth |
 | `COPYCAT_SIMILARITY_THRESHOLD` | cosine threshold for optional semantic copycat matching (default `0.85`) |
-| `MAX_SOL_PER_TRADE` / `DAILY_LOSS_LIMIT_SOL` / `MAX_TRADES_PER_DAY` / `MAX_OPEN_POSITIONS` | risk manager limits |
+| `MAX_ETH_PER_TRADE` / `DAILY_LOSS_LIMIT_ETH` / `MAX_TOTAL_EXPOSURE_ETH` / `MAX_TRADES_PER_DAY` / `MAX_OPEN_POSITIONS` | risk manager limits, amounts in ETH. The pre-1.1 `MAX_SOL_PER_TRADE` / `DAILY_LOSS_LIMIT_SOL` names still work |
+| `ROI_TABLE` | time-decaying take-profit as `minutes:min-profit-%` pairs, default `0:100,30:40,120:15,360:0` |
+| `TRAILING_ACTIVATE_PCT` / `TRAILING_STOP_PCT` | trailing stop arms at this profit, then closes after giving back this many points from the peak |
+| `MAX_HOLD_MINUTES` | time stop for anything still open |
+| `PROTECT_STOPLOSS_LIMIT` / `PROTECT_WINDOW_MINUTES` / `PROTECT_LOCK_MINUTES` | pause new entries after this many stop-losses in the window (0 disables) |
+| `FALLBACK_COST_BPS` | flat per-side cost for tokens with no bonding curve (graduated), default 100 |
 | `RUG_LOSS_PCT` / `BLOCK_CREATOR_AFTER_RUGS` / `FORGET_CREATORS_AFTER_DAYS` | reputation book tuning |
-| `STOP_LOSS_PCT` | real drawdown from entry that force-closes a dry-run position |
+| `STOP_LOSS_PCT` | net loss (after fee and price impact) that force-closes a dry-run position |
 | `GROK_BREAKER_FAILURE_THRESHOLD` / `GROK_BREAKER_COOLDOWN_SECONDS` | circuit breaker tuning for Grok outages |
 | `ALERT_CHAT_ID` | optional channel/group every passing signal is also posted to |
 | `WEBHOOK_URLS` | optional comma-separated webhook endpoints for passing signals, see `docs/webhook-schema.md` |
@@ -208,11 +245,13 @@ Contributor documentation: [add a new chain or launchpad adapter](docs/adding-a-
 
 **Robinhood Chain / hood.fun** polls hood.fun's own read-only `/api/board` indexer every five seconds. Before graduation it calculates the native ETH price from the documented constant-product virtual reserves, `virtualEth / virtualTokens`. After migration it uses `pairPriceWei`, which is sourced from the official Uniswap v3 pool. Robinhood Chain is Arbitrum Orbit chain `4663`. Its public RPC is rate-limited, so production operators should set a dedicated `ROBINHOOD_RPC_URL`, which is intentionally read-only configuration: it provides a stable verification/fallback endpoint without adding wallets, signing, or any live execution path.
 
-hood.fun's indexer does not expose an authoritative unique-buyer count in its launch records, so that one pre-filter is skipped when the adapter reports the value as unavailable. All remaining researcher, agent, checker, risk, and dry-run stages are unchanged.
+hood.fun's indexer does not expose an authoritative unique-buyer count in its launch records, so that one pre-filter is skipped when the adapter reports the value as unavailable. The board response does carry an `activity` block with per-token trade counts, volumes and a sample of recent trades; v1.1 passes those to the auditor. There is no holder data, so the auditor is told not to guess at holder distribution. All remaining researcher, agent, checker, risk, and dry-run stages are unchanged.
 
 Semantic copycat detection is local and optional. When `requirements-semantic.txt` is installed, `sentence-transformers/all-MiniLM-L6-v2` is loaded lazily on the first researcher run and compared only with tokens from the same six-hour lookback. If the package or model is unavailable, the bot logs one warning and continues with the existing normalized exact matcher.
 
 ## NFT screener (Robinhood Chain)
+
+> **Status: dormant.** When v1.1 was written, `hood.fun/api/nft/collections` answered **HTTP 404**: the endpoint this screener assumes does not exist. The bot now probes it at startup and, if it is missing, logs a warning and leaves the screener off instead of polling a page that is not there. It will start on the next restart once a real endpoint exists and `ROBINHOOD_NFT_DATA_URL` points at it.
 
 Set `NFT_SCREENER_ENABLED=true` to run a second, independent screening pipeline alongside the token pipeline, covering new NFT collections on Robinhood Chain. It is architecturally a second source-type behind the same `ChainAdapter`-shaped contract, not a new blockchain - see [add a new chain or launchpad adapter](docs/adding-a-chain.md) for the pattern both follow. hood.fun does not yet document a public NFT marketplace API the way it documents `/api/board` for token launches, so `bot/services/nft/adapter.py` assumes the same request/response shape until a real endpoint is confirmed.
 
@@ -233,6 +272,26 @@ Any user ID in `ADMIN_IDS` sees a "🛠 Admin panel" button on the main menu:
 - **📈 Backtest** - all-time funnel, win rate, average/median PnL, best/worst trade, and stop-loss hit rate
 - **📣 Broadcast** - send a message to every known user
 - **📢 Channels** - set or unset the mandatory-subscription channel per interface language
+
+## Honest limits
+
+Read these before trusting any number the bot prints.
+
+- **The market is thin, and the data source is not stable.** While v1.1 was being built, the same `/api/board` endpoint returned 436 tokens to one HTTP client and 10,630 to another, and its most recent launches were more than a day old. Recent activity is sparse and bursty, so a win rate over a handful of trades is noise. That is why the report prints a confidence interval and says so plainly, and why the bot refuses to treat a token older than `MAX_LAUNCH_AGE_SECONDS` as a new launch.
+- **Simulation is not execution.** Latency, gas, failed transactions and front-running are not modelled. The [full list of assumptions](docs/simulation-model.md) is deliberately blunt.
+- **The report is forward-recorded, not a replay.** There is no historical backtest, so no lookahead check is needed - and none is offered.
+- **The timing agent judges only this bot's own vantage point** (launches it has seen in the last 15 minutes). With few launches that window is close to empty.
+- **No holder data.** The launchpad does not publish it, so wash-trading is inferred from trades only.
+- **The NFT screener is dormant** until a real endpoint exists (see above).
+
+## Design credits
+
+v1.1 borrows ideas, not code, from two open-source projects:
+
+- [virattt/ai-hedge-fund](https://github.com/virattt/ai-hedge-fund) (MIT) - failing to an *abstention* rather than a guess, keeping a complete record of every decision, risk limits that carry an audit trail, and being honest about statistical significance.
+- [Freqtrade](https://github.com/freqtrade/freqtrade) (GPLv3) - the ROI table, trailing stop and stop-loss guard, and the habit of documenting a simulation's assumptions. **No Freqtrade code is used**; everything here was written from the documented behaviour, so this project stays MIT.
+
+Neither project models price impact, so [`bot/services/curve.py`](bot/services/curve.py) is original work built on the reserves hood.fun publishes.
 
 ## License
 

@@ -21,6 +21,20 @@ def _parse_urls(raw: str) -> tuple[str, ...]:
     return tuple(dict.fromkeys(value.strip() for value in raw.split(",") if value.strip()))
 
 
+def _env_float(name: str, default: str, legacy: str | None = None) -> float:
+    """Read a float env var, falling back to a pre-v1.1 name.
+
+    The risk limits were named after SOL before the project moved to Robinhood
+    Chain. Deployed instances still set the old names, and silently ignoring
+    them would reset a live risk limit to its default, so the old name keeps
+    working (the new one wins when both are set).
+    """
+    raw = os.getenv(name)
+    if raw is None and legacy:
+        raw = os.getenv(legacy)
+    return float(raw if raw is not None else default)
+
+
 @dataclass(frozen=True)
 class Config:
     bot_token: str = field(default_factory=lambda: os.environ["BOT_TOKEN"])
@@ -53,18 +67,47 @@ class Config:
     robinhood_rpc_url: str = field(
         default_factory=lambda: os.getenv("ROBINHOOD_RPC_URL", "https://rpc.mainnet.chain.robinhood.com")
     )
+    # A "new launch" monitor must never treat an old token as new. If the indexer
+    # ever serves a different or larger dataset, everything not seen before would
+    # otherwise flood the paid pipeline. Older tokens are marked seen and skipped.
+    max_launch_age_seconds: int = field(default_factory=lambda: int(os.getenv("MAX_LAUNCH_AGE_SECONDS", "3600")))
+    robinhood_poll_seconds: float = field(default_factory=lambda: float(os.getenv("ROBINHOOD_POLL_SECONDS", "5")))
     min_launch_age_seconds: int = field(default_factory=lambda: int(os.getenv("MIN_LAUNCH_AGE_SECONDS", "60")))
     min_unique_buyers: int = field(default_factory=lambda: int(os.getenv("MIN_UNIQUE_BUYERS", "5")))
     copycat_similarity_threshold: float = field(
         default_factory=lambda: float(os.getenv("COPYCAT_SIMILARITY_THRESHOLD", "0.85"))
     )
 
-    # Risk manager — five independent limits, checked before any signal is surfaced.
-    max_sol_per_trade: float = field(default_factory=lambda: float(os.getenv("MAX_SOL_PER_TRADE", "0.5")))
-    daily_loss_limit_sol: float = field(default_factory=lambda: float(os.getenv("DAILY_LOSS_LIMIT_SOL", "2.0")))
+    # Risk manager — six independent limits, checked before any signal is surfaced.
+    # Amounts are in the chain's native currency (ETH on Robinhood Chain).
+    max_eth_per_trade: float = field(
+        default_factory=lambda: _env_float("MAX_ETH_PER_TRADE", "0.5", "MAX_SOL_PER_TRADE")
+    )
+    daily_loss_limit_eth: float = field(
+        default_factory=lambda: _env_float("DAILY_LOSS_LIMIT_ETH", "2.0", "DAILY_LOSS_LIMIT_SOL")
+    )
+    max_total_exposure_eth: float = field(
+        default_factory=lambda: float(os.getenv("MAX_TOTAL_EXPOSURE_ETH", "1.5"))
+    )
     max_trades_per_day: int = field(default_factory=lambda: int(os.getenv("MAX_TRADES_PER_DAY", "10")))
     max_open_positions: int = field(default_factory=lambda: int(os.getenv("MAX_OPEN_POSITIONS", "5")))
     stop_loss_pct: float = field(default_factory=lambda: float(os.getenv("STOP_LOSS_PCT", "35")))
+
+    # Exit scheme (see bot/services/exits.py). Percentages are net of costs.
+    roi_table: str = field(default_factory=lambda: os.getenv("ROI_TABLE", "0:100,30:40,120:15,360:0"))
+    trailing_activate_pct: float = field(
+        default_factory=lambda: float(os.getenv("TRAILING_ACTIVATE_PCT", "25"))
+    )
+    trailing_stop_pct: float = field(default_factory=lambda: float(os.getenv("TRAILING_STOP_PCT", "12")))
+    max_hold_minutes: int = field(default_factory=lambda: int(os.getenv("MAX_HOLD_MINUTES", "720")))
+
+    # Protections (see bot/services/protections.py).
+    protect_stoploss_limit: int = field(default_factory=lambda: int(os.getenv("PROTECT_STOPLOSS_LIMIT", "3")))
+    protect_window_minutes: int = field(default_factory=lambda: int(os.getenv("PROTECT_WINDOW_MINUTES", "240")))
+    protect_lock_minutes: int = field(default_factory=lambda: int(os.getenv("PROTECT_LOCK_MINUTES", "120")))
+
+    # Simulation cost when no bonding curve is available (e.g. graduated tokens).
+    fallback_cost_bps: int = field(default_factory=lambda: int(os.getenv("FALLBACK_COST_BPS", "100")))
 
     # Reputation book — creators are blocked after this many rugs.
     rug_loss_pct: float = field(default_factory=lambda: float(os.getenv("RUG_LOSS_PCT", "60")))
