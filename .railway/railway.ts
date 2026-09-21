@@ -14,7 +14,7 @@ export default defineRailway(() => {
   });
 
   const bot = service("pumpguard-bot", {
-    source: github("AtenovD/grokbot-pumpfun", { branch: "main" }),
+    source: github("AtenovD/PumpGuard-AI", { branch: "main" }),
     start: "python -m bot.main",
     volumeMounts: {
       "/data": data,
@@ -28,7 +28,7 @@ export default defineRailway(() => {
     },
   });
 
-  return project("grokbot-pumpfun", {
+  return project("PumpGuard-AI", {
     resources: [bot, data],
   });
 });

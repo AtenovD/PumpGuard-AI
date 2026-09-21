@@ -1,5 +1,5 @@
 {
-  "name": "grokbot-pumpfun-deploy",
+  "name": "pumpguard-ai-deploy",
   "private": true,
   "devDependencies": {
     "railway": "3.11.0"

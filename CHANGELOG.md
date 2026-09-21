@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versions before 1.1.0 were never tagged; `v1.0.0` marks the repository as it stood before this release (commit `cbce7e0`).
 
+## [Unreleased]
+
+### Changed
+- **Renamed to PumpGuard AI** (formerly `grokbot-pumpfun`). GitHub redirects the old URL.
+- Documentation now describes the model layer as provider-neutral: any OpenAI-compatible chat-completions API works by setting `GROK_BASE_URL`, `GROK_API_KEY` and the two model names. xAI Grok remains the default. The `GROK_*` variable names are unchanged so existing `.env` files keep working.
+
 ## [1.1.0] - Honest simulation
 
 Theme: make every number the bot reports mean something. The screening logic is unchanged; the way a trade is priced, exited, explained and reported is not.

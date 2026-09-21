@@ -26,7 +26,7 @@ from bot.services.runtime_health import run_runtime_health_reporter
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    logging.getLogger(__name__).info("grokbot-pumpfun v%s starting", __version__)
+    logging.getLogger(__name__).info("PumpGuard AI v%s starting", __version__)
 
     storage = Storage(config.db_path)
     await storage.connect()

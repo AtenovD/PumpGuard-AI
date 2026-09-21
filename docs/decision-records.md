@@ -45,7 +45,7 @@ GET /api/decisions?mint=0xabc...
 ```
 
 * `verdicts` is keyed by pipeline role (`researcher`, `auditor`, `narrative`, `timing`, `checker`).
-* `model_calls` holds one entry per Grok call: agent, model, a 16-character SHA-256 prefix of the system prompt (so you can tell which prompt version answered), the exact input message, and the parsed answer. `answered: false` means the call failed.
+* `model_calls` holds one entry per model call: agent, model, a 16-character SHA-256 prefix of the system prompt (so you can tell which prompt version answered), the exact input message, and the parsed answer. `answered: false` means the call failed.
 * `risk.clamps` lists every hard limit that cut the position size, with the size before and after.
 * `locks` lists any protection that refused the entry, with its scope, reason and expiry.
 * `fill` is the simulated entry (effective price, tokens, fee, price impact, cost model).

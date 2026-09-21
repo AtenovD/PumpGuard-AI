@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 570" width="1200" height="570" role="img" aria-labelledby="t d">
-  <title id="t">grokbot-pumpfun v1.1 screening pipeline</title>
+  <title id="t">PumpGuard AI v1.1 screening pipeline</title>
   <desc id="d">Two rows of pipeline stages from a new launch to the exit scheme. Stages new in v1.1 are outlined in orange: protections, the auditor with real trade data, the risk limits with a clamp journal, cost-aware fills and the exit scheme. An abstain branch and a decision record that captures every outcome are shown below.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -72,11 +72,11 @@
   <g>
     <rect x="60"  y="250" width="150" height="66" rx="11" class="node"/>
     <text x="135" y="279" text-anchor="middle" class="name">Narrative</text>
-    <text x="135" y="299" text-anchor="middle" class="sub">Grok</text>
+    <text x="135" y="299" text-anchor="middle" class="sub">LLM</text>
 
     <rect x="246" y="250" width="150" height="66" rx="11" class="node"/>
     <text x="321" y="279" text-anchor="middle" class="name">Timing</text>
-    <text x="321" y="299" text-anchor="middle" class="sub">Grok</text>
+    <text x="321" y="299" text-anchor="middle" class="sub">LLM</text>
 
     <rect x="432" y="250" width="150" height="66" rx="11" class="node"/>
     <text x="507" y="279" text-anchor="middle" class="name">Checker</text>

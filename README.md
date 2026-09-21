@@ -1,29 +1,29 @@
 <p align="center">
-  <img src="assets/hero-banner.png" alt="grokbot-pumpfun" width="100%">
+  <img src="assets/hero-banner.png" alt="PumpGuard AI" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://github.com/AtenovD/grokbot-pumpfun/actions/workflows/ci.yml"><img src="https://github.com/AtenovD/grokbot-pumpfun/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
-  <a href="https://railway.com/new/template?template=https%3A%2F%2Fgithub.com%2FAtenovD%2Fgrokbot-pumpfun&amp;envs=BOT_TOKEN%2CADMIN_IDS%2CGROK_API_KEY"><img src="https://railway.com/button.svg" alt="Deploy on Railway"></a>
-  <a href="https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FAtenovD%2Fgrokbot-pumpfun"><img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render"></a>
+  <a href="https://github.com/AtenovD/PumpGuard-AI/actions/workflows/ci.yml"><img src="https://github.com/AtenovD/PumpGuard-AI/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://railway.com/new/template?template=https%3A%2F%2Fgithub.com%2FAtenovD%2FPumpGuard-AI&amp;envs=BOT_TOKEN%2CADMIN_IDS%2CGROK_API_KEY"><img src="https://railway.com/button.svg" alt="Deploy on Railway"></a>
+  <a href="https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FAtenovD%2FPumpGuard-AI"><img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/AtenovD/grokbot-pumpfun/stargazers"><img src="https://img.shields.io/github/stars/AtenovD/grokbot-pumpfun?style=for-the-badge&color=yellow" alt="Stars"></a>
-  <a href="https://github.com/AtenovD/grokbot-pumpfun/blob/main/LICENSE"><img src="https://img.shields.io/github/license/AtenovD/grokbot-pumpfun?style=for-the-badge" alt="License"></a>
-  <a href="https://github.com/AtenovD/grokbot-pumpfun/commits/main"><img src="https://img.shields.io/github/last-commit/AtenovD/grokbot-pumpfun?style=for-the-badge" alt="Last commit"></a>
+  <a href="https://github.com/AtenovD/PumpGuard-AI/stargazers"><img src="https://img.shields.io/github/stars/AtenovD/PumpGuard-AI?style=for-the-badge&color=yellow" alt="Stars"></a>
+  <a href="https://github.com/AtenovD/PumpGuard-AI/blob/main/LICENSE"><img src="https://img.shields.io/github/license/AtenovD/PumpGuard-AI?style=for-the-badge" alt="License"></a>
+  <a href="https://github.com/AtenovD/PumpGuard-AI/commits/main"><img src="https://img.shields.io/github/last-commit/AtenovD/PumpGuard-AI?style=for-the-badge" alt="Last commit"></a>
 </p>
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.1.0-ff6b00?style=for-the-badge" alt="Version 1.1.0">
   <img src="https://img.shields.io/badge/python-3.12-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12">
-  <img src="https://img.shields.io/badge/Powered%20by-Grok-FF6B00?style=for-the-badge" alt="Powered by Grok">
+  <img src="https://img.shields.io/badge/Models-any%20OpenAI--compatible%20API-FF6B00?style=for-the-badge" alt="Works with any OpenAI-compatible model API">
   <img src="https://img.shields.io/badge/chain-Robinhood%20Chain-00C805?style=for-the-badge" alt="Robinhood Chain">
   <img src="https://img.shields.io/badge/execution-dry--run%20only-brightgreen?style=for-the-badge" alt="Dry-run only">
   <img src="https://img.shields.io/badge/NFT-screener-EC4899?style=for-the-badge" alt="NFT screener">
 </p>
 
 <p align="center">
-  A Telegram bot that screens new Robinhood Chain / hood.fun token launches through four Grok-powered agents, a risk manager, and a creator reputation book - then simulates the trade. No live execution, ever.
+  A Telegram bot that screens new Robinhood Chain / hood.fun token launches through four LLM-powered agents, a risk manager, and a creator reputation book - then simulates the trade. No live execution, ever. Bring your own model: Grok by default, or any OpenAI-compatible chat-completions API.
 </p>
 
 <h3 align="center">Most screeners show you what passed.<br>This one keeps the receipt for everything else - and prices every simulated trade like it was real.</h3>
@@ -31,9 +31,9 @@
 <table align="center">
   <tr>
     <td align="center"><img src="https://img.shields.io/badge/deploy-000000?style=for-the-badge&logo=railway&logoColor=white" alt="deploy"></td>
-    <td align="center"><a href="https://railway.com/new/template?template=https%3A%2F%2Fgithub.com%2FAtenovD%2Fgrokbot-pumpfun&envs=BOT_TOKEN%2CADMIN_IDS%2CGROK_API_KEY"><img src="https://img.shields.io/badge/RAILWAY-one--click-0B0D0E?style=for-the-badge&logo=railway&logoColor=%23B14EFF" alt="Railway one-click deploy"></a></td>
+    <td align="center"><a href="https://railway.com/new/template?template=https%3A%2F%2Fgithub.com%2FAtenovD%2FPumpGuard-AI&envs=BOT_TOKEN%2CADMIN_IDS%2CGROK_API_KEY"><img src="https://img.shields.io/badge/RAILWAY-one--click-0B0D0E?style=for-the-badge&logo=railway&logoColor=%23B14EFF" alt="Railway one-click deploy"></a></td>
     <td align="center"><img src="https://img.shields.io/badge/deploy-000000?style=for-the-badge&logo=render&logoColor=white" alt="deploy"></td>
-    <td align="center"><a href="https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FAtenovD%2Fgrokbot-pumpfun"><img src="https://img.shields.io/badge/RENDER-blueprint-00C7B7?style=for-the-badge&logo=render&logoColor=white" alt="Render blueprint deploy"></a></td>
+    <td align="center"><a href="https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FAtenovD%2FPumpGuard-AI"><img src="https://img.shields.io/badge/RENDER-blueprint-00C7B7?style=for-the-badge&logo=render&logoColor=white" alt="Render blueprint deploy"></a></td>
   </tr>
   <tr>
     <td align="center"><img src="https://img.shields.io/badge/self--host-000000?style=for-the-badge&logo=docker&logoColor=white" alt="self-host"></td>
@@ -100,21 +100,21 @@ Read more: [simulation model and every assumption](docs/simulation-model.md) · 
   <img src="assets/pipeline-diagram.png" alt="Screening pipeline: filter, analyze, evaluate, execute" width="100%">
 </p>
 
-- **Robinhood Chain launch monitor** - watches hood.fun launches on Robinhood Chain, filters by age and buyer count before spending a single Grok call
+- **Robinhood Chain launch monitor** - watches hood.fun launches on Robinhood Chain, filters by age and buyer count before spending a single model call
 - **Five agents**, cheapest first:
-  - **Researcher** - free DB lookups before any Grok call: has this creator rugged before, and does this name/symbol exactly or semantically copy a recent token
-  - **Auditor** (Grok) - looks for wash trading and one-sided buying in the launchpad's real trade statistics (holder data is not available). With fewer than three observed trades it abstains without spending a call
-  - **Narrative** (Grok) - scores the meme's attention potential from its name/symbol
-  - **Timing** (Grok) - judges the current window using only this bot's own observed launch/outcome rate (no external price feeds)
-  - **Checker** (Grok, stronger model) - an adversarial final pass given all four prior verdicts, explicitly looking for a reason to reject
+  - **Researcher** - free DB lookups before any model call: has this creator rugged before, and does this name/symbol exactly or semantically copy a recent token
+  - **Auditor** (LLM) - looks for wash trading and one-sided buying in the launchpad's real trade statistics (holder data is not available). With fewer than three observed trades it abstains without spending a call
+  - **Narrative** (LLM) - scores the meme's attention potential from its name/symbol
+  - **Timing** (LLM) - judges the current window using only this bot's own observed launch/outcome rate (no external price feeds)
+  - **Checker** (LLM, stronger model) - an adversarial final pass given all four prior verdicts, explicitly looking for a reason to reject
 - **Real price tracking** - open dry-run positions are watched against the chain's actual bonding-curve or DEX-pool price, not a random number
 - **Exit scheme** - stop-loss, a time-decaying ROI take-profit table, a trailing stop and a time stop. Every rule is judged on what a sale would actually return after fee and price impact
 - **Cost-aware simulation** - fills are priced off the bonding curve, so size matters: a buy costs about 1.4% over spot at 0.01 ETH and about 19% at 0.5 ETH, fee included
 - **Abstain, not guess** - a model outage, an unparseable reply or missing data is an abstention: it can never buy and is reported apart from rejections
 - **Decision records** - every outcome, not just the passes, saves a full record you can query (`GET /api/decisions`)
 - **Protections** - a stop-loss guard pauses new entries after a cluster of stop-outs, and an unhealthy price feed locks them until it recovers
-- **Circuit breaker on Grok** - after several consecutive failures, the pipeline stops calling Grok for a cooldown window instead of hammering a struggling API on every new launch
-- **Explainability digest** - the four agent verdicts are synthesized by Grok into one short, readable paragraph for the alert, instead of four raw JSON summaries
+- **Circuit breaker on the model API** - after several consecutive failures, the pipeline stops calling the model for a cooldown window instead of hammering a struggling API on every new launch
+- **Explainability digest** - the four agent verdicts are synthesized by the model into one short, readable paragraph for the alert, instead of four raw JSON summaries
 - **Optional user Grok OAuth** - users can connect their own Grok account with authorization-code PKCE and request a fresh, detailed second opinion for a signal. Encrypted user tokens never replace the bot's core `GROK_API_KEY` pipeline
 - **Prompt-injection resistant** - token symbol/name/description are attacker-controlled. They're sanitized and every agent prompt explicitly frames them as data, not instructions, before anything reaches Grok
 - **Risk manager** - six independent limits: max ETH per trade, daily loss limit, total open exposure, max trades/day, max open positions, stop-loss. Pure arithmetic, no model involved, the last gate before a (simulated) trade, and every clamp it applies is journaled
@@ -125,14 +125,14 @@ Read more: [simulation model and every assumption](docs/simulation-model.md) · 
 - **Button-only Telegram frontend**: RU/EN language picker, stats, open positions, optional mandatory-subscription gate, button-driven admin panel - no slash commands beyond `/start`
 - **Read-only web dashboard** - responsive funnel, recorded-performance summary, open positions, and a polling JSON stats endpoint without a second market-data connection
 - **Versioned signal webhooks** - optionally POST every passing `TokenAnalysis` to multiple integrations with one retry and a stable v1 JSON envelope
-- **Prometheus metrics** - dashboard `/metrics` exposes cumulative screening outcomes, positions, Grok circuit-breaker state, and per-chain price-feed health
+- **Prometheus metrics** - dashboard `/metrics` exposes cumulative screening outcomes, positions, model circuit-breaker state, and per-chain price-feed health
 - **NFT screener** (optional) - a second, independent pipeline screens new Robinhood Chain NFT collections for wash-minting and hype, alert-only
 - **Floor-sweep alerts** - watches every screened collection's floor price and alerts on a sudden collapse (possible rug) or spike (possible breakout)
 - **Cross-surface signal** - flags when the same creator address launches both a token and an NFT collection on Robinhood Chain
 
 ## Stack
 
-Python 3.12, [aiogram 3](https://docs.aiogram.dev/), aiohttp, `websockets`, aiosqlite. Optional FastAPI/Jinja dashboard. Grok API (xAI) for the four agents.
+Python 3.12, [aiogram 3](https://docs.aiogram.dev/), aiohttp, `websockets`, aiosqlite. Optional FastAPI/Jinja dashboard. Any OpenAI-compatible chat-completions API for the four agents (xAI Grok by default).
 
 ## Quick start
 
@@ -186,11 +186,12 @@ Railway's current project-level Infrastructure as Code definition is `.railway/r
 |---|---|
 | `BOT_TOKEN` | bot token from @BotFather |
 | `ADMIN_IDS` | comma-separated admin user IDs |
-| `GROK_API_KEY` | xAI API key - used only for the four screening agents |
+| `GROK_API_KEY` | API key for your model provider (xAI by default) - used only for the four screening agents. The `GROK_*` names are kept for backward compatibility; see [Choosing a model provider](#choosing-a-model-provider) |
+| `GROK_BASE_URL` | chat-completions endpoint of your provider (default `https://api.x.ai/v1/chat/completions`) |
 | `GROK_FAST_MODEL` / `GROK_CHECKER_MODEL` | models for the three cheap agents vs. the adversarial checker |
 | `ENABLED_CHAINS` | comma-separated adapter list, only `robinhood` is currently implemented (defaults to `robinhood`) |
 | `ROBINHOOD_DATA_URL` / `ROBINHOOD_RPC_URL` | hood.fun public indexer root and Robinhood Chain RPC used for source verification/fallback |
-| `MIN_LAUNCH_AGE_SECONDS` / `MIN_UNIQUE_BUYERS` | pre-filter before any Grok call is made |
+| `MIN_LAUNCH_AGE_SECONDS` / `MIN_UNIQUE_BUYERS` | pre-filter before any model call is made |
 | `MAX_LAUNCH_AGE_SECONDS` | tokens older than this (default 3600) are never treated as new launches, so a change in what the indexer serves cannot flood the paid pipeline |
 | `ROBINHOOD_POLL_SECONDS` | how often the board is polled (default 5). The payload is a few hundred KB compressed; raise this to cut bandwidth |
 | `COPYCAT_SIMILARITY_THRESHOLD` | cosine threshold for optional semantic copycat matching (default `0.85`) |
@@ -202,19 +203,32 @@ Railway's current project-level Infrastructure as Code definition is `.railway/r
 | `FALLBACK_COST_BPS` | flat per-side cost for tokens with no bonding curve (graduated), default 100 |
 | `RUG_LOSS_PCT` / `BLOCK_CREATOR_AFTER_RUGS` / `FORGET_CREATORS_AFTER_DAYS` | reputation book tuning |
 | `STOP_LOSS_PCT` | net loss (after fee and price impact) that force-closes a dry-run position |
-| `GROK_BREAKER_FAILURE_THRESHOLD` / `GROK_BREAKER_COOLDOWN_SECONDS` | circuit breaker tuning for Grok outages |
+| `GROK_BREAKER_FAILURE_THRESHOLD` / `GROK_BREAKER_COOLDOWN_SECONDS` | circuit breaker tuning for model API outages |
 | `ALERT_CHAT_ID` | optional channel/group every passing signal is also posted to |
 | `WEBHOOK_URLS` | optional comma-separated webhook endpoints for passing signals, see `docs/webhook-schema.md` |
 | `PUBLIC_DIGEST_CHAT_ID` | optional, separate channel for the weekly seven-day performance digest |
 | `DASHBOARD_PORT` | read-only dashboard listen port (defaults to `8000`) |
 | `NFT_SCREENER_ENABLED` | turns on the second, independent NFT collection screening pipeline (default `false`) |
 | `ROBINHOOD_NFT_DATA_URL` | Robinhood Chain NFT marketplace indexer root |
-| `NFT_MIN_LAUNCH_AGE_SECONDS` / `NFT_MIN_UNIQUE_MINTERS` | pre-filter before any Grok call is made for a collection |
+| `NFT_MIN_LAUNCH_AGE_SECONDS` / `NFT_MIN_UNIQUE_MINTERS` | pre-filter before any model call is made for a collection |
 | `NFT_ALERT_CHAT_ID` | optional separate channel for NFT alerts, falls back to `ALERT_CHAT_ID` |
 | `FLOOR_SWEEP_DROP_PCT` / `FLOOR_SWEEP_PUMP_PCT` | percent move from a collection's first-observed floor that triggers a floor-sweep alert |
 | `XAI_OAUTH_CLIENT_ID` / `XAI_OAUTH_CLIENT_SECRET` | credentials for an optional xAI OAuth application |
 | `XAI_OAUTH_REDIRECT_URI` | public dashboard callback URL, ending in `/oauth/callback` |
 | `OAUTH_ENCRYPTION_KEY` | Fernet key used to encrypt OAuth access and refresh tokens at rest |
+
+## Choosing a model provider
+
+The four screening agents, the digest and the NFT agents send a standard chat-completions request (`model`, `messages`, bearer key) and read JSON back. Any provider that accepts that format can be used by changing three settings in `.env`:
+
+```env
+GROK_API_KEY=<your provider key>
+GROK_BASE_URL=<provider chat-completions URL>
+GROK_FAST_MODEL=<model for the three cheap agents>
+GROK_CHECKER_MODEL=<stronger model for the adversarial checker>
+```
+
+For example `https://api.openai.com/v1/chat/completions`, `https://openrouter.ai/api/v1/chat/completions` or `https://api.groq.com/openai/v1/chat/completions`. You can mix models: use a cheap one for the first three agents and your strongest for the checker. Pick models that follow JSON instructions reliably - screening quality depends on the model you choose. xAI Grok remains the default and the only provider the optional per-user OAuth connection below works with.
 
 ## Optional Grok account connection
 
@@ -257,8 +271,8 @@ Set `NFT_SCREENER_ENABLED=true` to run a second, independent screening pipeline 
 
 This pipeline is alert-only: an NFT collection has no bonding-curve entry price to dry-run buy/sell against the way a token does, so nothing here is ever fed to `DryRunExecutor`.
 
-- **NFT auditor** (Grok) - flags wash-minting: a collection's supply far exceeding its unique-minter count means a handful of wallets minted most of it themselves
-- **NFT narrative** (Grok) - scores hype potential from the collection's name/symbol (no image analysis is wired up yet - see below)
+- **NFT auditor** (LLM) - flags wash-minting: a collection's supply far exceeding its unique-minter count means a handful of wallets minted most of it themselves
+- **NFT narrative** (LLM) - scores hype potential from the collection's name/symbol (no image analysis is wired up yet - see below)
 - **Floor-sweep watcher** - tracks each screened collection's floor price against the first value this process observed for it, and alerts on a `FLOOR_SWEEP_DROP_PCT` collapse (possible rug) or a `FLOOR_SWEEP_PUMP_PCT` spike (possible breakout) in either direction
 - **Cross-surface signal** - `bot/services/cross_signal.py` checks whether the same creator address already has a launch on the *other* Robinhood surface (a token creator who also deployed an NFT collection, or vice versa) and surfaces it as a flag either pipeline's researcher step can weigh - it says nothing on its own about which way that cuts, a serious builder or a coordinated multi-surface scam both look like this
 
