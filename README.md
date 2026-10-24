@@ -190,7 +190,7 @@ Railway's current project-level Infrastructure as Code definition is `.railway/r
 | `GROK_BASE_URL` | chat-completions endpoint of your provider (default `https://api.x.ai/v1/chat/completions`) |
 | `GROK_FAST_MODEL` / `GROK_CHECKER_MODEL` | models for the three cheap agents vs. the adversarial checker |
 | `ENABLED_CHAINS` | comma-separated adapter list, only `robinhood` is currently implemented (defaults to `robinhood`) |
-| `ROBINHOOD_DATA_URL` / `ROBINHOOD_RPC_URL` | hood.fun public indexer root and Robinhood Chain RPC used for source verification/fallback |
+| `ROBINHOOD_DATA_URL` / `ROBINHOOD_RPC_URL` | hood.fun public indexer root used for `/api/board` polling; `ROBINHOOD_RPC_URL` is accepted and stored but currently unused |
 | `MIN_LAUNCH_AGE_SECONDS` / `MIN_UNIQUE_BUYERS` | pre-filter before any model call is made |
 | `MAX_LAUNCH_AGE_SECONDS` | tokens older than this (default 3600) are never treated as new launches, so a change in what the indexer serves cannot flood the paid pipeline |
 | `ROBINHOOD_POLL_SECONDS` | how often the board is polled (default 5). The payload is a few hundred KB compressed; raise this to cut bandwidth |
@@ -257,7 +257,7 @@ Routes:
 
 Contributor documentation: [add a new chain or launchpad adapter](docs/adding-a-chain.md).
 
-**Robinhood Chain / hood.fun** polls hood.fun's own read-only `/api/board` indexer every five seconds. Before graduation it calculates the native ETH price from the documented constant-product virtual reserves, `virtualEth / virtualTokens`. After migration it uses `pairPriceWei`, which is sourced from the official Uniswap v3 pool. Robinhood Chain is Arbitrum Orbit chain `4663`. Its public RPC is rate-limited, so production operators should set a dedicated `ROBINHOOD_RPC_URL`, which is intentionally read-only configuration: it provides a stable verification/fallback endpoint without adding wallets, signing, or any live execution path.
+**Robinhood Chain / hood.fun** polls hood.fun's own read-only `/api/board` indexer every five seconds. Before graduation it calculates the native ETH price from the documented constant-product virtual reserves, `virtualEth / virtualTokens`. After migration it uses `pairPriceWei`, which is sourced from the official Uniswap v3 pool. Robinhood Chain is Arbitrum Orbit chain `4663`. Setting `ROBINHOOD_RPC_URL` is accepted and stored by the adapter, but the current adapter does not use it: it does not switch the polling source and provides no verification or fallback.
 
 hood.fun's indexer does not expose an authoritative unique-buyer count in its launch records, so that one pre-filter is skipped when the adapter reports the value as unavailable. The board response does carry an `activity` block with per-token trade counts, volumes and a sample of recent trades; v1.1 passes those to the auditor. There is no holder data, so the auditor is told not to guess at holder distribution. All remaining researcher, agent, checker, risk, and dry-run stages are unchanged.
 
